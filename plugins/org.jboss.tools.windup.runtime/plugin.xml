@@ -1,9 +1,148 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+<!--
    <extension
          point="org.jboss.tools.forge.core.furnaceRepository">
       <repositoryProvider
             provider="org.jboss.tools.windup.runtime.internal.FurnaceRepositoryProvider"></repositoryProvider>
    </extension>
+   -->
+   
+   
+      <extension
+         point="org.eclipse.wst.server.core.serverTypes">
+      <serverType
+            behaviourClass="org.jboss.tools.windup.runtime.server.core.internal.WindupServerBehaviour"
+            class="org.jboss.tools.windup.runtime.server.core.internal.WindupServer"
+            name="Windup Server"
+            description="A Windup Server Adapter"
+            hasConfiguration="false"
+            id="org.jboss.tools.windup.runtime.server.type"
+            initialState="stopped"
+            launchConfigId="org.jboss.tools.windup.runtime.server.core.internal.behaviour.launchType"
+            launchModes="run"
+            runtime="false"
+            runtimeTypeId="org.jboss.tools.windup.runtime.type"
+            startBeforePublish="false"
+            startTimeout="1800000"
+            stopTimeout="900000"
+            supportsRemoteHosts="false"/>
+    </extension>
+    
+    
+   <extension point="org.eclipse.wst.server.core.runtimeTypes">
+         <!-- This is a complete dummy runtime type and is unused but cannot be removed -->
+      <runtimeType
+            class="org.jboss.tools.windup.runtime.server.core.internal.DummyServerRuntime"
+            description="A runtime representing a Vagrant container."
+            id="org.jboss.tools.windup.runtime.type"
+            name="Windup"
+            supportsManualCreation="false"
+            vendor="WINDUP"
+            version="1.0">
+      </runtimeType>
+	</extension> 
+    
+    
+    <!-- Launch Configuration for the servers -->
+	<extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            category="Red Hat"
+            delegate="org.jboss.ide.eclipse.as.wtp.core.server.launch.ControllableServerLaunchConfiguration"
+            id="org.jboss.tools.windup.runtime.server.core.internal.behaviour.launchType"
+            modes="run"
+            name="Red Hat CDK Server Startup Configuration"
+            public="true"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jst.server.generic.core.sourcePathComputer"/>
+	</extension>
+
+
+
+
+
+   <extension
+         point="org.eclipse.wst.server.ui.serverImages">
+      <image
+            icon="$nl$/icons/windup_16.png"
+            typeIds="org.jboss.tools.windup.runtime.server.type,org.jboss.tools.windup.runtime.type"
+            id="org.jboss.tools.windup.runtime.type.icon"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.wst.server.ui.wizardFragments">
+      <fragment
+            class="org.jboss.tools.windup.server.ui.internal.WindupServerWizardFragment"
+            typeIds="org.jboss.tools.windup.runtime.server.type"
+        	id="org.jboss.tools.windup.server.ui.internal.WindupServerWizardFragment"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="org.jboss.tools.windup.server.ui.internal.WindupLaunchConfigurationTabGroup"
+            description="Launch Tabs for Windup"
+            id="org.jboss.tools.windup.runtime.server.ui.internal.CDKLaunchConfigurationTabGroup"
+            type="org.jboss.tools.windup.runtime.server.core.internal.behaviour.launchType"/>
+   </extension>
+
+
+
+   <!-- Launch Controllers -->
+   <extension
+         point="org.jboss.ide.eclipse.as.wtp.core.serverSubsystem">
+      <subsystem
+            system="launch"
+            id="launch.windup"
+            name="Launch the Windup Server"
+            class="org.jboss.tools.windup.runtime.server.core.internal.controllers.WindupLaunchController">
+      </subsystem>
+      <subsystemMapping
+            id="launch.windup"
+            mappedId="launch.windup"
+            serverTypes="org.jboss.tools.windup.runtime.server.type">
+      </subsystemMapping>
+
+      <subsystem
+            system="shutdown"
+            id="shutdown.windup"
+            name="Shutdown the Windup Server"
+            class="org.jboss.tools.windup.runtime.server.core.internal.controllers.WindupShutdownController">
+      </subsystem>
+      <subsystemMapping
+            id="shutdown.windup"
+            mappedId="shutdown.windup"
+            serverTypes="org.jboss.tools.windup.runtime.server.type">
+      </subsystemMapping>
+      
+      <subsystem
+            system="publish"
+            id="publish.windup"
+            name="Publish the Windup Server (inactive)"
+            class="org.jboss.tools.windup.runtime.server.core.internal.controllers.WindupNullPublishController">
+      </subsystem>
+      <subsystemMapping
+            id="publish.windup"
+            mappedId="publish.windup"
+            serverTypes="org.jboss.tools.windup.runtime.server.type">
+      </subsystemMapping>
+      
+      
+      
+   </extension>
+   <extension
+         point="org.jboss.ide.eclipse.as.core.pollers">
+      <serverPoller
+            class="org.jboss.tools.windup.runtime.server.core.internal.WindupJMXPoller"
+            id="org.jboss.tools.windup.runtime.server.core.internal.WindupJMXPoller"
+            name="Windup JMX Poller"
+            supportsShutdown="true"
+            supportsStartup="true">
+      </serverPoller>
+   </extension>
+   
+   
+   
 </plugin>

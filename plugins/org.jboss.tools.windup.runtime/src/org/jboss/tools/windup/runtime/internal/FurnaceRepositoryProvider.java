@@ -10,21 +10,12 @@
  ******************************************************************************/
 package org.jboss.tools.windup.runtime.internal;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jboss.tools.forge.core.furnace.repository.FurnaceRepository;
-import org.jboss.tools.forge.core.furnace.repository.IFurnaceRepository;
-import org.jboss.tools.forge.core.furnace.repository.IFurnaceRepositoryProvider;
-import org.jboss.tools.windup.runtime.WindupRuntimePlugin;
-
 /**
  * <p>
  * Windup Furnace add on repository provider.
  * </p>
  */
-public class FurnaceRepositoryProvider implements IFurnaceRepositoryProvider
+public class FurnaceRepositoryProvider { /*implements IFurnaceRepositoryProvider
 {
     @Override
     public List<IFurnaceRepository> getRepositories()
@@ -42,5 +33,5 @@ public class FurnaceRepositoryProvider implements IFurnaceRepositoryProvider
     public ClassLoader getClassLoader()
     {
         return WindupRuntimePlugin.getDefault().getClass().getClassLoader();
-    }
+    } */
 }
