@@ -24,8 +24,8 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.jboss.tools.foundation.core.xml.IMemento;
 import org.jboss.tools.foundation.core.xml.XMLMemento;
-import org.jboss.windup.bootstrap.help.Help;
-import org.jboss.windup.bootstrap.help.OptionDescription;
+import org.jboss.tools.windup.runtime.model.Help;
+import org.jboss.tools.windup.runtime.model.OptionDescription;
 import org.osgi.framework.BundleContext;
 
 import com.google.common.collect.Lists;

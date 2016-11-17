@@ -22,12 +22,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.jboss.tools.windup.model.Facades.IFacade;
-import org.jboss.tools.windup.model.OptionFacades.OptionTypeFacade;
-import org.jboss.tools.windup.model.OptionFacades.OptionsFacadeManager;
-import org.jboss.tools.windup.model.OptionFacades.Type;
+import org.jboss.tools.windup.runtime.model.OptionDescription;
+import org.jboss.tools.windup.runtime.model.Facades.IFacade;
+import org.jboss.tools.windup.runtime.model.OptionFacades.OptionTypeFacade;
+import org.jboss.tools.windup.runtime.model.OptionFacades.OptionsFacadeManager;
+import org.jboss.tools.windup.runtime.model.OptionFacades.Type;
 import org.jboss.tools.windup.ui.internal.Messages;
-import org.jboss.windup.bootstrap.help.OptionDescription;
 
 /**
  * GUI facades for options. 

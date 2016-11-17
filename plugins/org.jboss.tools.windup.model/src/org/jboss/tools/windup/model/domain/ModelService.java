@@ -52,10 +52,12 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.jboss.tools.common.xml.IMemento;
 import org.jboss.tools.common.xml.XMLMemento;
 import org.jboss.tools.windup.model.Activator;
-import org.jboss.tools.windup.model.OptionFacades;
-import org.jboss.tools.windup.model.OptionFacades.OptionsFacadeManager;
 import org.jboss.tools.windup.model.util.DocumentUtils;
 import org.jboss.tools.windup.runtime.WindupRuntimePlugin;
+import org.jboss.tools.windup.runtime.model.Help;
+import org.jboss.tools.windup.runtime.model.MissingAPIUtility;
+import org.jboss.tools.windup.runtime.model.OptionFacades;
+import org.jboss.tools.windup.runtime.model.OptionFacades.OptionsFacadeManager;
 import org.jboss.tools.windup.windup.ConfigurationElement;
 import org.jboss.tools.windup.windup.Input;
 import org.jboss.tools.windup.windup.Issue;
@@ -64,7 +66,6 @@ import org.jboss.tools.windup.windup.Technology;
 import org.jboss.tools.windup.windup.WindupFactory;
 import org.jboss.tools.windup.windup.WindupModel;
 import org.jboss.tools.windup.windup.WindupResult;
-import org.jboss.windup.bootstrap.help.Help;
 import org.jboss.windup.tooling.ExecutionResults;
 import org.jboss.windup.tooling.data.Hint;
 import org.jboss.windup.tooling.data.Link;
@@ -417,7 +418,7 @@ public class ModelService {
         input.setWindupResult(result);
         configuration.setTimestamp(createTimestamp());
         for (Hint wHint : results.getHints()) {
-        	String path = wHint.getFile().getAbsolutePath();
+        	String path = wHint.getFile();
         	IFile resource = ModelService.getResource(path);
 			if (resource == null) {
 				Activator.logErrorMessage("ModelService:: No workspace resource associated with file: " + path); //$NON-NLS-1$
@@ -433,7 +434,7 @@ public class ModelService {
         	for (Quickfix fix : wHint.getQuickfixes()) {
         		org.jboss.tools.windup.windup.QuickFix quickFix = WindupFactory.eINSTANCE.createQuickFix();
         		quickFix.setName(fix.getName());
-        		quickFix.setQuickFixType(fix.getType().toString());
+        		quickFix.setQuickFixType(fix.getType());
         		quickFix.setSearchString(fix.getSearch());
         		quickFix.setReplacementString(fix.getReplacement());
         		quickFix.setNewLine(fix.getNewline());
@@ -441,8 +442,8 @@ public class ModelService {
         	}
 
         	// TODO: I think we might want to change this to project relative for portability.
-        	hint.setFileAbsolutePath(wHint.getFile().getAbsolutePath());
-        	hint.setSeverity(wHint.getSeverity().toString());
+        	hint.setFileAbsolutePath(wHint.getFile());
+        	hint.setSeverity(getSeverity(wHint));
         	hint.setRuleId(wHint.getRuleID());
         	hint.setEffort(wHint.getEffort());
         	
@@ -465,6 +466,11 @@ public class ModelService {
         linkReports(results, result.getIssues());
 	}
 	
+	private String getSeverity(Hint h) {
+		int i = MissingAPIUtility.getMarkerSeverity(h);
+		return new Integer(i).toString();
+	}
+	
 	private void linkReports(ExecutionResults results, List<Issue> issues) {
 		for (Issue issue : issues) {
 			IFile resource = ModelService.getIssueResource(issue);
@@ -475,8 +481,8 @@ public class ModelService {
 			File file = resource.getRawLocation().toFile();
 			for (ReportLink link : results.getReportLinks()) {
 				if (link.getInputFile().equals(file)) {
-					File report = link.getReportFile();
-					issue.setGeneratedReportLocation(report.getAbsolutePath());
+					String report = link.getReportFile();
+					issue.setGeneratedReportLocation(report);
 					break;
 				}
 			}

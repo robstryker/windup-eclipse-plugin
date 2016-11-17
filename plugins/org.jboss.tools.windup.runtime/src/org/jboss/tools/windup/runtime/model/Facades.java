@@ -8,7 +8,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.windup.model;
+package org.jboss.tools.windup.runtime.model;
 
 import java.util.List;
 

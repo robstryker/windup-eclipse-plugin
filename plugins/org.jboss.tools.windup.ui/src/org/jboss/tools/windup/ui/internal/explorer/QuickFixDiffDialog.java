@@ -24,10 +24,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.jboss.tools.windup.runtime.model.IWindupConstants;
 import org.jboss.tools.windup.ui.internal.Messages;
 import org.jboss.tools.windup.windup.Hint;
 import org.jboss.tools.windup.windup.QuickFix;
-import org.jboss.windup.reporting.model.QuickfixType;
 
 /**
  * Diff dialog for previewing Windup quick fixes.
@@ -99,13 +99,13 @@ public class QuickFixDiffDialog extends DiffDialog {
 			public String getText(Object element) {
 				QuickFix fix = (QuickFix)element;
 				String label = "";
-				if (QuickfixType.REPLACE.toString().equals(fix.getQuickFixType())) {
+				if (IWindupConstants.QUICKFIX_REPLACE.toString().equals(fix.getQuickFixType())) {
 					label = fix.getReplacementString();
 				}
-				else if (QuickfixType.DELETE_LINE.toString().equals(fix.getQuickFixType())) {
+				else if (IWindupConstants.QUICKFIX_DELETE_LINE.toString().equals(fix.getQuickFixType())) {
 					label = Messages.ComparePreviewer_quickFixNoText;
 				}
-				else if (QuickfixType.INSERT_LINE.toString().equals(fix.getQuickFixType())) {
+				else if (IWindupConstants.QUICKFIX_INSERT_LINE.toString().equals(fix.getQuickFixType())) {
 					label = fix.getNewLine();
 				}
 				return label;

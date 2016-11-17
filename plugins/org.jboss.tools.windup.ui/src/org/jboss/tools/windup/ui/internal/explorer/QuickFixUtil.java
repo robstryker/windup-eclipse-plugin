@@ -21,11 +21,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.jboss.tools.windup.model.domain.WindupConstants;
 import org.jboss.tools.windup.model.util.DocumentUtils;
+import org.jboss.tools.windup.runtime.model.IWindupConstants;
 import org.jboss.tools.windup.ui.internal.services.MarkerService;
 import org.jboss.tools.windup.windup.Hint;
 import org.jboss.tools.windup.windup.Issue;
 import org.jboss.tools.windup.windup.QuickFix;
-import org.jboss.windup.reporting.model.QuickfixType;
 
 /**
  * Utility for interacting with quick fixes.
@@ -50,19 +50,19 @@ public class QuickFixUtil {
 	
 	public static IResource getQuickFixedResource(IResource original, QuickFix quickFix, Hint hint) {
 		TempProject project = new TempProject();
-		if (QuickfixType.REPLACE.toString().equals(quickFix.getQuickFixType())) {
+		if (IWindupConstants.QUICKFIX_REPLACE.toString().equals(quickFix.getQuickFixType())) {
 			int lineNumber = hint.getLineNumber()-1;
 			String searchString = quickFix.getSearchString();
 			String replacement = quickFix.getReplacementString();
 			Document document = DocumentUtils.replace(original, lineNumber, searchString, replacement);
 			return project.createResource(document.get());
 		}
-		else if (QuickfixType.DELETE_LINE.toString().equals(quickFix.getQuickFixType())) {
+		else if (IWindupConstants.QUICKFIX_DELETE_LINE.toString().equals(quickFix.getQuickFixType())) {
 			int lineNumber = hint.getLineNumber()-1;
 			Document document = DocumentUtils.deleteLine(original, lineNumber);
 			return project.createResource(document.get());
 		}
-		else if (QuickfixType.INSERT_LINE.toString().equals(quickFix.getQuickFixType())) {
+		else if (IWindupConstants.QUICKFIX_INSERT_LINE.toString().equals(quickFix.getQuickFixType())) {
 			int lineNumber = hint.getLineNumber();
 			lineNumber = lineNumber > 1 ? lineNumber - 2 : lineNumber - 1;
 			String newLine = quickFix.getReplacementString();

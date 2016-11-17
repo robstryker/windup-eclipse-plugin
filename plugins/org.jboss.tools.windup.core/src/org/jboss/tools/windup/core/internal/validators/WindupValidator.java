@@ -11,7 +11,6 @@
 package org.jboss.tools.windup.core.internal.validators;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashSet;
@@ -32,7 +31,7 @@ import org.jboss.tools.windup.core.WindupCorePlugin;
 import org.jboss.tools.windup.core.services.WindupService;
 import org.jboss.tools.windup.model.domain.WindupMarker;
 import org.jboss.tools.windup.runtime.WindupRuntimePlugin;
-import org.jboss.windup.reporting.model.Severity;
+import org.jboss.tools.windup.runtime.model.MissingAPIUtility;
 import org.jboss.windup.tooling.data.Classification;
 import org.jboss.windup.tooling.data.Hint;
 
@@ -113,7 +112,7 @@ public class WindupValidator extends AbstractValidator
                     message = message.trim();
 
                 ValidatorMessage hintMessage = ValidatorMessage.create(message, resource);
-                hintMessage.setAttribute(IMarker.SEVERITY, convertSeverity(hint.getSeverity()));
+                hintMessage.setAttribute(IMarker.SEVERITY, convertSeverity(hint));
                 hintMessage.setType(WindupMarker.WINDUP_HINT_MARKER_ID);
                 hintMessage.setAttribute(IMarker.LINE_NUMBER, hint.getLineNumber());
 
@@ -172,7 +171,7 @@ public class WindupValidator extends AbstractValidator
                     seen.add(title);
 
                     ValidatorMessage message = ValidatorMessage.create(title, resource);
-                    message.setAttribute(IMarker.SEVERITY, convertSeverity(classification.getSeverity()));
+                    message.setAttribute(IMarker.SEVERITY, convertSeverity(classification));
                     message.setType(WindupMarker.WINDUP_CLASSIFICATION_MARKER_ID);
                     message.setAttribute(IMarker.LINE_NUMBER, 1);
                     message.setAttribute(IMarker.CHAR_START, 0);
@@ -186,25 +185,19 @@ public class WindupValidator extends AbstractValidator
         return result;
     }
 
-    private boolean matches(File file, IResource resource)
+    private boolean matches(String file, IResource resource)
     {
-        return file.getAbsolutePath().contains(resource.getFullPath().toString());
+        return file.contains(resource.getFullPath().toString());
     }
 
-    private int convertSeverity(Severity severity)
+    private int convertSeverity(Classification c) 
     {
-        if (severity == null)
-            return IMarker.SEVERITY_WARNING;
-
-        switch (severity)
-        {
-        case MANDATORY:
-            return IMarker.SEVERITY_ERROR;
-        case OPTIONAL:
-            return IMarker.SEVERITY_WARNING;
-        default:
-            return IMarker.SEVERITY_ERROR;
-        }
+    	return MissingAPIUtility.getMarkerSeverity(c);
+    }
+    
+    private int convertSeverity(Hint hint)
+    {
+    	return MissingAPIUtility.getMarkerSeverity(hint);
     }
 
     /**

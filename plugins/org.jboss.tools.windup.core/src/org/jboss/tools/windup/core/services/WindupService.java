@@ -31,33 +31,23 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.e4.core.di.annotations.Creatable;
 import org.eclipse.osgi.util.NLS;
-import org.jboss.tools.forge.core.furnace.FurnaceProvider;
-import org.jboss.tools.forge.core.furnace.FurnaceService;
 import org.jboss.tools.windup.core.IWindupListener;
 import org.jboss.tools.windup.core.WindupCorePlugin;
-import org.jboss.tools.windup.core.WindupProgressMonitorAdapter;
 import org.jboss.tools.windup.core.internal.Messages;
 import org.jboss.tools.windup.core.utils.FileUtils;
-import org.jboss.tools.windup.model.OptionFacades;
-import org.jboss.tools.windup.model.OptionFacades.OptionTypeFacade;
-import org.jboss.tools.windup.model.OptionFacades.OptionsFacadeManager;
 import org.jboss.tools.windup.model.domain.ModelService;
 import org.jboss.tools.windup.model.domain.WorkspaceResourceUtils;
+import org.jboss.tools.windup.runtime.WindupExecutioner;
 import org.jboss.tools.windup.runtime.WindupRuntimePlugin;
+import org.jboss.tools.windup.runtime.model.IWindupConstants;
+import org.jboss.tools.windup.runtime.model.OptionDescription;
+import org.jboss.tools.windup.runtime.model.OptionFacades;
+import org.jboss.tools.windup.runtime.model.OptionFacades.OptionTypeFacade;
+import org.jboss.tools.windup.runtime.model.OptionFacades.OptionsFacadeManager;
 import org.jboss.tools.windup.windup.ConfigurationElement;
 import org.jboss.tools.windup.windup.Input;
 import org.jboss.tools.windup.windup.MigrationPath;
 import org.jboss.tools.windup.windup.Pair;
-import org.jboss.windup.bootstrap.help.OptionDescription;
-import org.jboss.windup.config.SkipReportsRenderingOption;
-import org.jboss.windup.exec.WindupProgressMonitor;
-import org.jboss.windup.exec.configuration.options.SourceOption;
-import org.jboss.windup.exec.configuration.options.TargetOption;
-import org.jboss.windup.exec.configuration.options.UserRulesDirectoryOption;
-import org.jboss.windup.rules.apps.java.config.ScanPackagesOption;
-import org.jboss.windup.rules.apps.java.config.SourceModeOption;
-import org.jboss.windup.tooling.ExecutionBuilder;
-import org.jboss.windup.tooling.ExecutionBuilderSetOptions;
 import org.jboss.windup.tooling.ExecutionResults;
 import org.jboss.windup.tooling.data.Classification;
 import org.jboss.windup.tooling.data.Hint;
@@ -185,59 +175,17 @@ public class WindupService
 
         try {
         	for (Input input : configuration.getInputs()) {
-        		WindupProgressMonitor windupProgressMonitor = new WindupProgressMonitorAdapter(progress);
-                ExecutionBuilder execBuilder = WindupService.getServiceFromFurnace(ExecutionBuilder.class, progress);
             	
                 Path projectPath = WorkspaceResourceUtils.computePath(input.getUri());
                 progress.beginTask(NLS.bind(Messages.generate_windup_graph_for, input.getName()), IProgressMonitor.UNKNOWN);
                 
                 IPath outputPath = modelService.getGeneratedReportBaseLocation(configuration, input);
-                ExecutionBuilderSetOptions options = execBuilder.begin(WindupRuntimePlugin.findWindupHome().toPath())
-                        .setInput(projectPath)
-                        .setOutput(outputPath.toFile().toPath())
-                        .setProgressMonitor(windupProgressMonitor)
-                        .setOption(SourceModeOption.NAME, true);
                 
-                MigrationPath path = configuration.getMigrationPath();
-                options.setOption(TargetOption.NAME, Lists.newArrayList(path.getTarget().getId()));
-                if (path.getSource() != null) {
-                	options.setOption(SourceOption.NAME, Lists.newArrayList(path.getSource().getId()));
-                }
-                if (!configuration.isGenerateReport()) {
-                	options.setOption(SkipReportsRenderingOption.NAME, true);
-                }
-                if (!configuration.getPackages().isEmpty()) {
-                	options.setOption(ScanPackagesOption.NAME, configuration.getPackages());
-                }
-                if (!configuration.getUserRulesDirectories().isEmpty()) {
-                	File file = new File(configuration.getUserRulesDirectories().get(0));
-                	options.setOption(UserRulesDirectoryOption.NAME, file);
-                }
+                HashMap<String, Object> options2 = new HashMap<String, Object>();
+                fillOptionsMap(configuration, options2);
+                Path windupHome = WindupRuntimePlugin.findWindupHome().toPath();
+                ExecutionResults results = execute(windupHome, projectPath, outputPath.toFile().toPath(), options2, progress);
                 
-                OptionsFacadeManager facadeMgr = modelService.getOptionFacadeManager();
-                
-                Multimap<String, String> optionMap = ArrayListMultimap.create();
-                for (Pair pair : configuration.getOptions()) {
-                	String name = pair.getKey();
-                	String value = pair.getValue();
-                	optionMap.put(name, value);
-                }
-                
-                for (String name : optionMap.keySet()) {
-                	List<String> values = (List<String>)optionMap.get(name);
-                	OptionDescription option = facadeMgr.findOptionDescription(name);
-                	OptionTypeFacade<?> typeFacade = facadeMgr.getFacade(option, OptionTypeFacade.class);
-                	if (OptionFacades.isSingleValued(option)) {
-                		Object optionValue = typeFacade.newInstance(values.get(0));
-                		options.setOption(name, optionValue);
-                	}
-                	else {
-                		List<?> optionValues = typeFacade.newInstance(values);
-                		options.setOption(name, optionValues);
-                	}
-                }
-                
-                ExecutionResults results = options.ignore("\\.class$").execute();
                 modelService.populateConfiguration(configuration, input, results);
         	}
         	modelService.save();
@@ -255,6 +203,60 @@ public class WindupService
         }
 
         return status;
+    }
+    
+    
+    private ExecutionResults execute(Path windupHome, Path projectPath, Path outputPath, 
+    		HashMap<String, Object> options, IProgressMonitor monitor) {
+    	return WindupExecutioner.get().execute(windupHome, projectPath, outputPath, options, monitor);
+    }
+    
+    private void fillOptionsMap(ConfigurationElement configuration, HashMap<String, Object> windupOptions) {
+        windupOptions.put(IWindupConstants.SOURCE_MODE_OPTION, true);
+        
+        MigrationPath path = configuration.getMigrationPath();
+        windupOptions.put( IWindupConstants.TARGET_OPTION, Lists.newArrayList(path.getTarget().getId()));
+        if (path.getSource() != null) {
+        	windupOptions.put(IWindupConstants.SOURCE_OPTION, Lists.newArrayList(path.getSource().getId()));
+        }
+        if (!configuration.isGenerateReport()) {
+        	windupOptions.put(IWindupConstants.SKIP_REPORTS_RENDERING_OPTION, true);
+        }
+        if (!configuration.getPackages().isEmpty()) {
+        	windupOptions.put(IWindupConstants.SCAN_PACKAGES_OPTION, configuration.getPackages());
+        }
+        if (!configuration.getUserRulesDirectories().isEmpty()) {
+        	File file = new File(configuration.getUserRulesDirectories().get(0));
+        	windupOptions.put(IWindupConstants.USER_RULES_DIRECTORY_OPTION, file);
+        }
+        
+        OptionsFacadeManager facadeMgr = modelService.getOptionFacadeManager();
+        
+        Multimap<String, String> optionMap = ArrayListMultimap.create();
+        for (Pair pair : configuration.getOptions()) {
+        	String name = pair.getKey();
+        	String value = pair.getValue();
+        	optionMap.put(name, value);
+        }
+        
+        for (String name : optionMap.keySet()) {
+        	List<String> values = (List<String>)optionMap.get(name);
+        	OptionDescription desc = facadeMgr.findOptionDescription(name); 
+        	OptionTypeFacade<?> typeFacade = facadeMgr.getFacade(desc, OptionTypeFacade.class);
+        	if (OptionFacades.isSingleValued(desc)) {
+        		Object optionValue = typeFacade.newInstance(values.get(0));
+        		windupOptions.put(name, optionValue);
+        	}
+        	else {
+        		List<?> optionValues = typeFacade.newInstance(values);
+        		windupOptions.put(name, optionValues);
+        	}
+        }
+        
+        
+        
+        // Now set tooling-specific k/v pairs
+        windupOptions.put(IWindupConstants.T_IGNORE, "\\.class$");
     }
     
     /**
@@ -300,26 +302,12 @@ public class WindupService
 
             // create new graph
             progress.subTask(NLS.bind(Messages.generate_windup_graph_for, projectName));
-
-            WindupProgressMonitor windupProgressMonitor = new WindupProgressMonitorAdapter(progress);
-            ExecutionBuilder execBuilder = WindupService.getServiceFromFurnace(ExecutionBuilder.class, progress);
             
-            /*ExecutionResults results = execBuilder.begin(WindupRuntimePlugin.findWindupHome().toPath())
-                        .setInput(inputDir.toPath())
-                        .setOutput(outputDir.toPath())
-                        .setProgressMonitor(windupProgressMonitor)
-                        .ignore("\\.class$")
-                        .execute();*/
-            
-            ExecutionResults results = execBuilder.begin(WindupRuntimePlugin.findWindupHome().toPath())
-                    .setInput(inputDir.toPath())
-                    .setOutput(outputDir.toPath())
-                    .setProgressMonitor(windupProgressMonitor)
-                    .setOption(SourceModeOption.NAME, true)
-                    .setOption(TargetOption.NAME, Lists.newArrayList("eap"))
-                    .ignore("\\.class$")
-                    .execute();
-            
+            Path wHome = WindupRuntimePlugin.findWindupHome().toPath();
+            HashMap<String, Object> opts = new HashMap<String, Object>();
+            opts.put(IWindupConstants.SOURCE_MODE_OPTION, true);
+            opts.put(IWindupConstants.TARGET_OPTION, Lists.newArrayList("eap"));
+            ExecutionResults results = execute(wHome, inputDir.toPath(), outputDir.toPath(), opts, monitor);
             projectToResults.put(project, results);
 
             // notify listeners that a graph was just generated
@@ -384,9 +372,9 @@ public class WindupService
             {
                 if (resourceAsFile.equals(reportLink.getInputFile()))
                 {
-                    File reportFile = reportLink.getReportFile();
+                    String reportFile = reportLink.getReportFile();
                     Path projectPath = resource.getProject().getLocation().toFile().toPath();
-                    Path reportFileRelativeToProject = projectPath.relativize(reportFile.toPath());
+                    Path reportFileRelativeToProject = projectPath.relativize(new File(reportFile).toPath());
                     IPath projectLocation = resource.getProject().getLocation();
                     reportPath = projectLocation.append(reportFileRelativeToProject.toString());
                     break;
@@ -490,42 +478,4 @@ public class WindupService
         return ModelService.reportsDir.append(resource.getProject().getName());
     }
     
-    public static void startFurnace() {
-    	 FurnaceProvider.INSTANCE.startFurnace();
-         try {
-             FurnaceService.INSTANCE.waitUntilContainerIsStarted();
-         }
-         catch (InterruptedException e) {
-             WindupCorePlugin.logError("Could not load Furance", e); //$NON-NLS-1$
-         }
-    }
-    
-    public static void waitForFurnace(IProgressMonitor monitor) {
-        // protect against a null given for the progress monitor
-        IProgressMonitor progress;
-        if (monitor != null) {
-            progress = new SubProgressMonitor(monitor, 1);
-        }
-        else {
-            progress = new NullProgressMonitor();
-        }
-
-        // start the task
-        progress.beginTask("Waiting for Furnace.", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
-
-        WindupService.startFurnace();
-        
-        progress.done();
-    }
-    
-    /**
-     * TODO: DOC ME
-     * 
-     * @param clazz
-     * @return
-     */
-    private static <T> T getServiceFromFurnace(Class<T> clazz, IProgressMonitor monitor) {
-        waitForFurnace(monitor);
-        return FurnaceService.INSTANCE.lookupImported(clazz).get();
-    }
 }

@@ -24,11 +24,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.tools.windup.model.domain.WindupConstants;
 import org.jboss.tools.windup.model.domain.WindupMarker;
+import org.jboss.tools.windup.runtime.model.Severity;
 import org.jboss.tools.windup.ui.WindupUIPlugin;
 import org.jboss.tools.windup.ui.internal.explorer.IssueExplorerContentProvider.TreeNode;
 import org.jboss.tools.windup.windup.Hint;
 import org.jboss.tools.windup.windup.Issue;
-import org.jboss.windup.reporting.model.Severity;
 
 public class MarkerNode extends TreeNode {
 	

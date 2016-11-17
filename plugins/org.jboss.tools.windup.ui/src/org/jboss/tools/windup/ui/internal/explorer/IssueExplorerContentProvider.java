@@ -36,12 +36,12 @@ import org.eclipse.ui.navigator.INavigatorContentService;
 import org.jboss.tools.windup.model.domain.ModelService;
 import org.jboss.tools.windup.model.domain.WindupConstants;
 import org.jboss.tools.windup.model.domain.WindupMarker;
+import org.jboss.tools.windup.runtime.model.Severity;
 import org.jboss.tools.windup.ui.internal.Messages;
 import org.jboss.tools.windup.ui.internal.services.IssueGroupService;
 import org.jboss.tools.windup.windup.ConfigurationElement;
 import org.jboss.tools.windup.windup.Hint;
 import org.jboss.tools.windup.windup.Issue;
-import org.jboss.windup.reporting.model.Severity;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

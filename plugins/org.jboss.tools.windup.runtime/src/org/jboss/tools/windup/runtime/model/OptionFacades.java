@@ -8,15 +8,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.jboss.tools.windup.model;
+package org.jboss.tools.windup.runtime.model;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.jboss.tools.windup.model.Facades.IFacade;
-import org.jboss.windup.bootstrap.help.Help;
-import org.jboss.windup.bootstrap.help.OptionDescription;
+import org.jboss.tools.windup.runtime.model.Facades.IFacade;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
