@@ -20,6 +20,7 @@ public class WindupJMXPoller extends JMXPoller {
 	private static final String STARTED_METHOD = "started"; //$NON-NLS-1$
 	public static final String SHUTDOWN_METHOD = "shutdownServer"; //$NON-NLS-1$
 	public static final String SYSTEM_MBEAN = "org.jboss.windup.bootstrap.server:type=WindupServer"; //$NON-NLS-1$
+	public static final String TOOLING_MBEAN = "org.jboss.windup.tooling:type=Tooling"; //$NON-NLS-1$
 
 
 	@Override

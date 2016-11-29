@@ -8,20 +8,18 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jdt.internal.launching.environments.EnvironmentsManager;
-import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.environments.IExecutionEnvironment;
 import org.eclipse.wst.server.core.IServer;
-import org.jboss.ide.eclipse.as.core.server.IJBossServerRuntime;
 import org.jboss.ide.eclipse.as.core.server.internal.launch.configuration.JBossLaunchConfigProperties;
 import org.jboss.ide.eclipse.as.core.util.LaunchConfigUtils;
 import org.jboss.ide.eclipse.as.wtp.core.server.launch.LaunchConfiguratorWithOverrides;
 import org.jboss.ide.eclipse.as.wtp.core.util.VMInstallUtil;
+import org.jboss.tools.windup.runtime.server.core.internal.WindupServer;
 
 public class WindupLaunchConfigurator extends LaunchConfiguratorWithOverrides {
 
@@ -55,13 +53,15 @@ public class WindupLaunchConfigurator extends LaunchConfiguratorWithOverrides {
 		// --output /home/rob/tmp/windup/output 
 		// --target eap --overwrite
 		
+		
+		String windupHome = server.getAttribute(WindupServer.PROP_WINDUP_HOME, (String)null);
 		// hard-code non-bundled windup since we're making changes to windup core and need the local build
-		String windupHome = "/home/rob/code/jbtools/other/windup/windup-distribution/target/windup-distribution-3.0.0-SNAPSHOT"; 
+		//String windupHome = "/home/rob/code/jbtools/other/windup/windup-distribution/target/windup-distribution-3.0.0-SNAPSHOT"; 
 		
 
 		
 		getProperties().setProgramArguments(getDefaultProgramArguments(windupHome), launchConfig);
-		getProperties().setVmArguments(getDefaultVMArguments(), launchConfig);
+		getProperties().setVmArguments(getDefaultVMArguments(windupHome), launchConfig);
 		getProperties().setJreContainer(getJreContainerPath(), launchConfig);
 		getProperties().setMainType(getMainType(), launchConfig);
 		getProperties().setWorkingDirectory(getWorkingDirectory(windupHome), launchConfig);
@@ -106,8 +106,20 @@ public class WindupLaunchConfigurator extends LaunchConfiguratorWithOverrides {
 		return false;
 	}
 
-	private String getDefaultVMArguments() {
-		return "-Djava.rmi.server.hostname=localhost ";
+	private String getDefaultVMArguments(String windupHome) {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("-XX:MaxMetaspaceSize=256m -XX:ReservedCodeCacheSize=128m ");
+		sb.append("-Dforge.standalone=true -Dforge.home=");
+		sb.append("\"");
+		sb.append(windupHome);
+		sb.append("\" ");
+		sb.append("-Dwindup.home=\"");
+		sb.append(windupHome);
+		sb.append("\" ");
+		 
+		sb.append("-Djava.rmi.server.hostname=localhost ");
+		return sb.toString();
 	}
 
 	private String getDefaultProgramArguments(String windupHome) {
